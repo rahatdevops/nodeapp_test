@@ -47,7 +47,7 @@ pipeline {
       }
     }
     
- stage('Deploying App to Kubernetes') {
+ stage('Restart deployments') {
       steps {
         sh 'kubectl rollout restart deployment nodeapp-deployment'
         }
