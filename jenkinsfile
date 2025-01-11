@@ -1,0 +1,55 @@
+pipeline {
+    parameters {
+        string(name: 'DEPLOYMENT_NAME', defaultValue: 'nodeapp-deployment', description: 'Deployment name to restart')
+        string(name: 'NAMESPACE', defaultValue: 'default', description: 'Namespace of the deployment')
+    }
+    
+    environment {
+    dockerimagename = "rahat6/rahatk8s-nodeapp:latest"
+    dockerImage = ""
+    KUBECONFIG = '/root/.kube/config'
+  }
+
+  agent any
+
+  stages {
+
+    stage('Checkout Source') {
+      steps {
+        git 'https://github.com/rahatdevops/nodeapp_test.git'
+      }
+    }
+    stage("Docker build"){
+        steps {
+        sh 'docker version'
+        sh 'docker build -t rahatk8s-nodeapp .'
+        sh 'docker image list'
+        sh 'docker tag rahatk8s-nodeapp rahat6/rahatk8s-nodeapp:latest'
+     } 
+    }
+    
+    stage("Login Docker Hub") {
+            steps {
+    withCredentials([string(credentialsId: 'dockerhublogin', variable: 'PASSWORD')]) {
+        sh 'docker login -u rahat6 -p $PASSWORD'
+        sh 'docker push rahat6/rahatk8s-nodeapp:latest'
+        }
+        
+      }
+    }
+    
+
+    stage('Deploying App to Kubernetes') {
+      steps {
+        script {
+          kubernetesDeploy (configs: 'deploymentservice.yml', kubeConfig: [path: ''], kubeconfigId: 'kubernetes')
+        }
+      }
+    }
+    
+ 
+
+  
+
+ }
+}
