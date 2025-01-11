@@ -47,7 +47,12 @@ pipeline {
       }
     }
     
- 
+ stage('Deploying App to Kubernetes') {
+      steps {
+        sh 'kubectl rollout restart deployment nodeapp-deployment'
+        }
+      }
+    
 
   
 
